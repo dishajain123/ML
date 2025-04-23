@@ -1,0 +1,71 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix , classification_report,accuracy_score
+
+data=pd.read_csv(r"C:\Users\Disha\OneDrive\Desktop\ml practical\breast-cancer.csv")
+print(data.head())
+print(data.columns)
+
+
+#X = data[['CreditScore', 'AnnualIncome']]  # Independent variables
+#y = data['LoanApproved']  # Dependent variable
+X = data.drop('diagnosis',axis=1)
+y = data['diagnosis']  # Dependent variable (target)
+
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size =0.2,random_state=42)
+
+
+log_model=LogisticRegression()
+log_model.fit(X_train,y_train)
+log_pred=log_model.predict(X_test)
+
+print("\nlogistic regression results:")
+print("confusion matrix:")
+print(confusion_matrix(y_test,log_pred))
+print("classification report:")
+print(classification_report(y_test,log_pred))
+print("accuracy score")
+print(accuracy_score(y_test,log_pred)*100)
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+
+# Compute confusion matrix
+cm = confusion_matrix(y_test, log_pred)
+
+# Plot the heatmap
+plt.figure(figsize=(6, 4))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
+            xticklabels=['Class 0', 'Class 1'], yticklabels=['Class 0', 'Class 1'])
+
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix Heatmap')
+plt.tight_layout()
+plt.show()
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define the sigmoid function
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+# Generate data for the plot
+x = np.linspace(-10, 10, 100)
+y = sigmoid(x)
+
+# Plot the sigmoid function
+plt.figure(figsize=(8, 6))
+plt.plot(x, y, label='Sigmoid Function', color='b')
+plt.axhline(0, color='black',linewidth=1)
+plt.axvline(0, color='black',linewidth=1)
+plt.title('Sigmoid Function')
+plt.xlabel('x')
+plt.ylabel('Sigmoid(x)')
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.legend()
+plt.tight_layout()
+plt.show()
