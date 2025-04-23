@@ -1,0 +1,100 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import confusion_matrix, classification_report, ConfusionMatrixDisplay # Import ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
+
+# --- IMPORTANT: Modify this path to your actual file location ---
+file_path = r"C:\Users\Disha\OneDrive\Desktop\ml practical\log,svm.csv.csv"
+# ---------------------------------------------------------
+
+try:
+    # Step 1: Load the dataset
+    data = pd.read_csv(file_path)
+    print("Data loaded successfully. First 5 rows:")
+    print(data.head())  # Show first 5 rows to check
+
+    # Step 2: Select input features (X) and target label (y)
+    # Ensure these columns exist in your CSV
+    if 'CreditScore' not in data.columns or 'AnnualIncome' not in data.columns or 'LoanApproved' not in data.columns:
+        raise ValueError("Required columns ('CreditScore', 'AnnualIncome', 'LoanApproved') not found in the CSV.")
+
+    X = data[['CreditScore', 'AnnualIncome']]  # Independent variables
+    y = data['LoanApproved']  # Dependent variable
+
+    # Step 3: Split data into training and testing (80% train, 20% test)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0, stratify=y)
+    print(f"\nData split: {len(X_train)} training samples, {len(X_test)} testing samples.")
+
+    # Step 4: Create and train the SVM model
+    model = SVC(kernel='linear', random_state=0)  # Using linear kernel, added random_state
+    model.fit(X_train, y_train)
+    print("\nModel trained.")
+
+    # Step 5: Make predictions
+    y_pred = model.predict(X_test)
+
+    # Step 6: Print confusion matrix and Classification Report
+    cm = confusion_matrix(y_test, y_pred)
+    print("\nConfusion Matrix:")
+    print(cm)
+    print("\nClassification Report:")
+    print(classification_report(y_test, y_pred, target_names=["Loan not approved", "Loan approved"])) # Added target names
+
+    # Step 7: Plot confusion matrix using ConfusionMatrixDisplay for better visualization
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["Loan not approved", "Loan approved"])
+    disp.plot(cmap=plt.cm.Blues)
+    plt.title("Confusion Matrix Heatmap (SVM)")
+    plt.grid(False)
+    plt.show()
+
+
+    # Step 8: Plot decision boundary (only if 2 features are used)
+    def plot_boundary(X_plot, y_plot, model_to_plot):
+        # Check if X_plot is a DataFrame and get values
+        if isinstance(X_plot, pd.DataFrame):
+            X_vals = X_plot.values
+            feature_names_plot = X_plot.columns
+        else: # Assume it's a NumPy array
+            X_vals = X_plot
+            feature_names_plot = ["Feature 1", "Feature 2"] # Generic names
+
+        y_vals = y_plot.values if isinstance(y_plot, pd.Series) else y_plot # Ensure y is NumPy array
+
+        x_min, x_max = X_vals[:, 0].min()-1, X_vals[:, 0].max()+1
+        y_min, y_max = X_vals[:, 1].min()-1, X_vals[:, 1].max()+1
+
+        # Create grid to predict on
+        xx, yy = np.meshgrid(np.linspace(x_min, x_max, 100),
+                             np.linspace(y_min, y_max, 100))
+
+        # Predict for every point in the grid
+        Z = model_to_plot.predict(np.c_[xx.ravel(), yy.ravel()])
+        Z = Z.reshape(xx.shape)
+
+        # Plot the decision boundary and data points
+        plt.figure(figsize=(10, 7))
+        plt.contourf(xx, yy, Z, alpha=0.3, cmap=plt.cm.coolwarm)
+        plt.scatter(X_vals[:, 0], X_vals[:, 1], c=y_vals, cmap=plt.cm.coolwarm, edgecolors='k')
+        plt.xlabel(feature_names_plot[0])
+        plt.ylabel(feature_names_plot[1])
+        plt.title("SVM Decision Boundary (Local Data)")
+        plt.show()
+
+    # Call the function to plot decision boundary (only for 2D features)
+    if X_train.shape[1] == 2:
+        print("\nPlotting decision boundary...")
+        # Plot with training data for visualization
+        plot_boundary(X_train, y_train, model)
+    else:
+        print("\nSkipping decision boundary plot: Not 2 features.")
+
+except FileNotFoundError:
+    print(f"\nError: The file '{file_path}' was not found.")
+    print("Please ensure the CSV file exists at the specified path or update the 'file_path' variable.")
+except ValueError as ve:
+    print(f"\nError: {ve}")
+except Exception as e:
+    print(f"\nAn unexpected error occurred: {e}")
+                            
