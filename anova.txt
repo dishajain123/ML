@@ -1,0 +1,50 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.feature_selection import SelectKBest, f_classif
+
+# Step 1: Load the data
+data = pd.read_csv(r"C:\Users\Disha\OneDrive\Desktop\ml practical\breast-cancer.csv")
+print(data.head())
+print("Dataset Columns:")
+print(data.columns)  # This will print the column names to help you identify features and target
+
+# Step 2: Define features and target
+X = data.drop('diagnosis', axis=1)
+y = data['diagnosis']  # Dependent variable (target)
+
+# Step 3: Split into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Logistic Regression model (before feature selection)
+log_model = LogisticRegression(max_iter=10000)  # Ensure convergence
+log_model.fit(X_train, y_train)
+log_pred = log_model.predict(X_test)
+
+# Results before feature selection
+print("Before Feature Selection (Logistic Regression):")
+print("Accuracy:", accuracy_score(y_test, log_pred))  
+print("Confusion Matrix:\n", confusion_matrix(y_test, log_pred))  
+print("Classification Report:\n", classification_report(y_test, log_pred))  
+
+# Step 4: Apply ANOVA feature selection (keep the most relevant features)
+anova_selector = SelectKBest(score_func=f_classif, k=5)  # Keep top 5 features
+X_new = anova_selector.fit_transform(X, y)  # Apply feature selection
+
+# Get the selected feature columns
+selected_columns = X.columns[anova_selector.get_support(indices=True)]  # Get the names of selected features
+print("Selected features:", selected_columns)
+
+# Step 5: Split the data again after feature selection
+X_train_new, X_test_new, y_train_new, y_test_new = train_test_split(X_new, y, test_size=0.2, random_state=42)
+
+# Logistic Regression model (after feature selection)
+log_model.fit(X_train_new, y_train_new)
+log_pred_new = log_model.predict(X_test_new)
+
+# Results after feature selection
+print("\nAfter Feature Selection (Logistic Regression):")
+print("Accuracy:", accuracy_score(y_test_new, log_pred_new))  
+print("Confusion Matrix:\n", confusion_matrix(y_test_new, log_pred_new))  
+print("Classification Report:\n", classification_report(y_test_new, log_pred_new))  

@@ -1,0 +1,20 @@
+import numpy as np
+import pandas as pd
+w = np.array([1,1.5,0,0.5]),
+Xi = [np.array([1,-2,1.5,0]),np.array([1,-0.5,-2,-1.5]),np.array([0,1,-1,1.5])]
+C =1
+Iteration = 0
+print("initial weight vector",w)
+print("input vectors",Xi)
+for i in range(len(Xi)):
+    net =np.dot(w,Xi[i])
+    Fnet = np.sign(net)
+    dw =C*Fnet*Xi[i]
+    w += dw
+    print(f"Iteration : {Iteration} : Weight vector : {w}")
+    Iteration +=1
+print("final weights",w)
+print("number of iterations",Iteration)
+    
+    
+    
