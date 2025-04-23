@@ -4,13 +4,13 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 
 # Step 1: Load the data
-data = pd.read_csv(r"C:\Users\Disha\OneDrive\Desktop\ml practical\facebook.csv")//change this
+data = pd.read_csv(r"C:\Users\Disha\OneDrive\Desktop\ml practical\facebook.csv") #change this
 
 print(data.head())
 
-# Step 2: Define inputs (X) and output (y) //change this
-X = data[["YouTube", "Facebook"]]
-y = data["Sales"]
+# Step 2: Define inputs (X) and output (y) #change this
+X = data[["CreditScore","AnualIncome"]]
+y = data["LoanApproved"]
 
 # Step 3: Split into training and testing sets (80% train, 20% test)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -27,9 +27,10 @@ plt.scatter(y_test, y_pred)  # Just use default color and marker
 plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], 'r--')  # Reference line
 
 # Labels and title
-plt.xlabel("Actual")
-plt.ylabel("Predicted")
-plt.title("Actual vs Predicted")
+plt.xlabel("Actual Loan Approval")     # because y_test contains actual labels
+plt.ylabel("Predicted Loan Approval")  # because y_pred contains predictions
+plt.title("Actual vs Predicted Loan Approval")
+
 
 # Show the plot
 plt.show()
