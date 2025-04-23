@@ -1,23 +1,26 @@
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
 
-# Load dataset
+# Load the dataset
 data = pd.read_csv(r"C:\Users\Disha\OneDrive\Desktop\ml practical\breast-cancer.csv")
+
+# Print first few rows and columns
 print(data.head())
 print(data.columns)
 
-# Full data for training and testing (original SVM model)
+# Full data split for SVM training and evaluation
 X = data.drop('diagnosis', axis=1)
 y = data['diagnosis']
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Train SVM
+# SVM Model Training
 svm_model = SVC(kernel='linear')
 svm_model.fit(X_train, y_train)
 svm_pred = svm_model.predict(X_test)
@@ -28,45 +31,53 @@ print("Confusion Matrix:")
 print(confusion_matrix(y_test, svm_pred))
 print("Classification Report:")
 print(classification_report(y_test, svm_pred))
-print("Accuracy:", accuracy_score(y_test, svm_pred) * 100)
+print("Accuracy Score:", accuracy_score(y_test, svm_pred) * 100)
 
-# Heatmap
+# Confusion Matrix Heatmap
 cm = confusion_matrix(y_test, svm_pred)
-labels = sorted(y.unique())  # Generalized labels
+labels = sorted(y.unique())
+
 plt.figure(figsize=(6, 4))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=labels, yticklabels=labels)
-plt.xlabel('Predicted')
-plt.ylabel('Actual')
-plt.title('Confusion Matrix Heatmap')
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=labels, yticklabels=labels)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix Heatmap")
 plt.tight_layout()
 plt.show()
 
-# Select only two features for decision boundary visualization
+# -------------------------------
+# Decision Boundary Visualization
+# -------------------------------
+
+# Use only 2 features for visualization
 X_vis = data[['radius_mean', 'texture_mean']]
 y_vis = data['diagnosis']
 
-# Split again for visual model
 X_train_vis, X_test_vis, y_train_vis, y_test_vis = train_test_split(X_vis, y_vis, test_size=0.2, random_state=42)
 
-# Train new model for 2D plot
+# Train a new SVM on the 2 features
 svm_model_vis = SVC(kernel='linear')
 svm_model_vis.fit(X_train_vis, y_train_vis)
 
-# Decision boundary plot
+# Decision boundary function
 def plot_decision_boundary(X, y, model):
     x_min, x_max = X.iloc[:, 0].min() - 1, X.iloc[:, 0].max() + 1
     y_min, y_max = X.iloc[:, 1].min() - 1, X.iloc[:, 1].max() + 1
     xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
                          np.arange(y_min, y_max, 0.1))
+
     Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.reshape(xx.shape)
-    plt.contourf(xx, yy, Z, alpha=0.4, cmap=plt.cm.coolwarm)
-    plt.scatter(X.iloc[:, 0], X.iloc[:, 1], c=pd.factorize(y)[0], cmap=plt.cm.coolwarm, edgecolor='k')
+
+    plt.figure(figsize=(8, 6))
+    plt.contourf(xx, yy, Z, alpha=0.3, cmap=plt.cm.coolwarm)
+    plt.scatter(X.iloc[:, 0], X.iloc[:, 1], c=pd.factorize(y)[0], cmap=plt.cm.coolwarm, edgecolors='k')
     plt.xlabel(X.columns[0])
     plt.ylabel(X.columns[1])
-    plt.title('SVM Decision Boundary (2 Features)')
+    plt.title("SVM Decision Boundary (2 Features)")
     plt.tight_layout()
     plt.show()
 
-# Show decision boundary
+# Plot
 plot_decision_boundary(X_vis, y_vis, svm_model_vis)
