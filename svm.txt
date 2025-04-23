@@ -1,68 +1,72 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
-from sklearn.metrics import confusion_matrix,classification_report,accuracy_score
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score
+import seaborn as sns
+import matplotlib.pyplot as plt
+import numpy as np
 
+# Load dataset
 data = pd.read_csv(r"C:\Users\Disha\OneDrive\Desktop\ml practical\breast-cancer.csv")
 print(data.head())
 print(data.columns)
 
-#X = data[['CreditScore', 'AnnualIncome']]  # Independent variables
-#y = data['LoanApproved']  # Dependent variable
-X= data.drop('diagnosis',axis=1)
-y=data['diagnosis']
+# Full data for training and testing (original SVM model)
+X = data.drop('diagnosis', axis=1)
+y = data['diagnosis']
 
-X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=0.2,random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Support Vector Machine (SVM)
+# Train SVM
 svm_model = SVC(kernel='linear')
 svm_model.fit(X_train, y_train)
 svm_pred = svm_model.predict(X_test)
 
-# SVM Results
+# Evaluation
 print("\nSVM Results:")
 print("Confusion Matrix:")
 print(confusion_matrix(y_test, svm_pred))
 print("Classification Report:")
 print(classification_report(y_test, svm_pred))
-print("Accuracy:", accuracy_score(y_test, svm_pred))  # Accuracy fo
+print("Accuracy:", accuracy_score(y_test, svm_pred) * 100)
 
-import seaborn as sns
-import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix
-
-# Compute confusion matrix
+# Heatmap
 cm = confusion_matrix(y_test, svm_pred)
-
-# Plot the heatmap
+labels = sorted(y.unique())  # Generalized labels
 plt.figure(figsize=(6, 4))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', 
-            xticklabels=['Class 0', 'Class 1'], yticklabels=['Class 0', 'Class 1'])
-
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=labels, yticklabels=labels)
 plt.xlabel('Predicted')
 plt.ylabel('Actual')
 plt.title('Confusion Matrix Heatmap')
 plt.tight_layout()
 plt.show()
 
-# Visualizing the decision boundary
-def plot_decision_boundary(X, y, model):
-    # Create a meshgrid for plotting decision boundary
-    h = .02  # step size in the mesh
-    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
-    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-                         np.arange(y_min, y_max, h))
+# Select only two features for decision boundary visualization
+X_vis = data[['radius_mean', 'texture_mean']]
+y_vis = data['diagnosis']
 
+# Split again for visual model
+X_train_vis, X_test_vis, y_train_vis, y_test_vis = train_test_split(X_vis, y_vis, test_size=0.2, random_state=42)
+
+# Train new model for 2D plot
+svm_model_vis = SVC(kernel='linear')
+svm_model_vis.fit(X_train_vis, y_train_vis)
+
+# Decision boundary plot
+def plot_decision_boundary(X, y, model):
+    x_min, x_max = X.iloc[:, 0].min() - 1, X.iloc[:, 0].max() + 1
+    y_min, y_max = X.iloc[:, 1].min() - 1, X.iloc[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
+                         np.arange(y_min, y_max, 0.1))
     Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
     Z = Z.reshape(xx.shape)
-
-    plt.contourf(xx, yy, Z, alpha=0.75, cmap=plt.cm.coolwarm)
-    plt.scatter(X[:, 0], X[:, 1], c=y, edgecolors='k', cmap=plt.cm.coolwarm)
-    plt.title('SVM Linear Kernel Decision Boundary')
-    plt.xlabel('Feature 1')
-    plt.ylabel('Feature 2')
+    plt.contourf(xx, yy, Z, alpha=0.4, cmap=plt.cm.coolwarm)
+    plt.scatter(X.iloc[:, 0], X.iloc[:, 1], c=pd.factorize(y)[0], cmap=plt.cm.coolwarm, edgecolor='k')
+    plt.xlabel(X.columns[0])
+    plt.ylabel(X.columns[1])
+    plt.title('SVM Decision Boundary (2 Features)')
+    plt.tight_layout()
     plt.show()
 
-# Plot the decision boundary
-plot_decision_boundary(X, y, svm_model)
+# Show decision boundary
+plot_decision_boundary(X_vis, y_vis, svm_model_vis)
